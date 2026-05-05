@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es-MX" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>CNC Torno Pro v5 - Calculadora Avanzada</title>
+<meta name="theme-color" content="#2563eb">
+<style>
+*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+:root{--bg:#f5f7fb;--card:#ffffff;--text:#0f172a;--muted:#64748b;--primary:#2563eb;--primary-2:#1d4ed8;--border:#e2e8f0;--success:#16a34a;--warn:#ea580c;--danger:#dc2626;--radius:16px;--shadow:0 4px 20px rgba(2,6,23,.06)}
+[data-theme="dark"]{--bg:#070b14;--card:#0f172a;--text:#e2e8f0;--muted:#94a3b8;--primary:#3b82f6;--primary-2:#2563eb;--border:#1e293b;--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}
+body{background:var(--bg);color:var(--text);line-height:1.4}
+.app{max-width:1140px;margin:0 auto;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--primary),#7c3aed);display:grid;place-items:center;color:white;font-weight:800;box-shadow:var(--shadow);font-size:20px}
+.brand h1{font-size:20px;margin:0;font-weight:800;letter-spacing:.2px}
+.brand h1 span{font-size:11px;background:var(--primary);color:white;padding:3px 8px;border-radius:999px;margin-left:6px;vertical-align:middle;font-weight:700}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.icon-btn{width:44px;height:44px;border-radius:12px;border:1px solid var(--border);background:var(--card);display:grid;place-items:center;cursor:pointer;font-size:20px;transition:.2s}
+.icon-btn:active{transform:scale(.96)}
+.tabs{display:flex;gap:8px;overflow:auto;padding:2px;margin:0 0 16px;scrollbar-width:none}
+.tab{flex:0 0 auto;padding:10px 16px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;min-height:44px;white-space:nowrap;transition:.2s}
+.tab.active{background:var(--primary);color:white;border-color:var(--primary);box-shadow:0 4px 12px rgba(37,99,235,.25)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.card h2{margin:0 0 14px;font-size:16px;font-weight:800}
+.form-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.field{grid-column:span 3;display:flex;flex-direction:column;gap:6px}
+.field.span-4{grid-column:span 4}.field.span-6{grid-column:span 6}.field.span-12{grid-column:span 12}
+label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+select,input{width:100%;padding:12px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text);font-size:15px;min-height:44px;outline:none;transition:.15s}
+select:focus,input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.15);background:var(--card)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{padding:12px 18px;border-radius:12px;border:1px solid var(--primary);background:var(--primary);color:white;font-weight:700;cursor:pointer;min-height:44px;font-size:15px;transition:.15s}
+.btn:hover{filter:brightness(1.05)}
+.btn.secondary{background:transparent;color:var(--primary)}
+.btn:active{transform:translateY(1px)}
+.results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.metric{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;overflow:hidden}
+.metric .k{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;font-weight:700;letter-spacing:.4px}
+.metric .v{font-size:24px;font-weight:800;line-height:1}
+.metric .s{font-size:12px;color:var(--muted);margin-top:4px}
+.alerts{display:grid;gap:8px}
+.alert{padding:12px 14px;border-radius:12px;border:1px solid;font-size:14px;line-height:1.35;display:flex;gap:10px;align-items:flex-start}
+.alert.ok{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.09);color:#15803d}
+.alert.warn{border-color:rgba(234,88,12,.35);background:rgba(234,88,12,.09);color:#c2410c}
+.alert.bad{border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.09);color:#b91c1c}
+[data-theme="dark"] .alert.ok{color:#4ade80}[data-theme="dark"] .alert.warn{color:#fb923c}[data-theme="dark"] .alert.bad{color:#f87171}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:14px;white-space:nowrap}
+th{background:var(--bg);position:sticky;top:0;z-index:1;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800}
+tr:hover td{background:rgba(37,99,235,.04)}
+.machines{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.machine{border:1px solid var(--border);border-radius:14px;padding:14px;background:var(--bg);transition:.2s}
+.machine:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.machine h3{margin:0 0 8px;font-size:15px;font-weight:800}
+.machine .specs{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:var(--bg);border:1px solid var(--border);font-size:12px;color:var(--muted);font-weight:700}
+.footer{color:var(--muted);font-size:12px;text-align:center;margin:24px 0 10px}
+.pill{display:inline-block;padding:4px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--border);font-size:12px;margin-right:6px}
+@media(max-width:960px){.field{grid-column:span 6}.results{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.field,.field.span-4,.field.span-6{grid-column:span 12}}
+@media(max-width:400px){.app{padding:12px}.card{padding:14px}body{font-size:14px}select,input,.btn{font-size:14px;min-height:44px}.results{grid-template-columns:1fr}.btn{width:100%}.tab{padding:12px 14px}.brand h1{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="brand">
+      <div class="logo">5</div>
+      <div>
+        <h1>CNC Torno Pro <span>v5</span></h1>
+        <p>Potencia real • Límites máquina • Insertos ISO</p>
+      </div>
+    </div>
+    <button id="themeBtn" class="icon-btn" title="Tema">🌙</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="calc">Calculadora</button>
+    <button class="tab" data-tab="insertos">Insertos</button>
+    <button class="tab" data-tab="biblioteca">Biblioteca</button>
+    <button class="tab" data-tab="maquinas">Máquinas</button>
+  </nav>
+
+  <main>
+    <section id="tab-calc">
+      <div class="card">
+        <h2>Parámetros de corte</h2>
+        <div class="form-grid">
+          <div class="field span-4">
+            <label>Material pieza</label>
+            <select id="material"></select>
+          </div>
+          <div class="field span-4">
+            <label>Operación</label>
+            <select id="operacion">
+              <option value="desbaste">Desbaste</option>
+              <option value="acabado">Acabado</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+          <div class="field span-4">
+            <label>Máquina CNC</label>
+            <select id="maquina"></select>
+          </div>
+
+          <div class="field">
+            <label>Diámetro (mm)</label>
+            <input id="diametro" type="number" min="1" max="600" step="0.1" value="50">
+          </div>
+          <div class="field">
+            <label>Longitud (mm)</label>
+            <input id="longitud" type="number" min="1" max="3000" step="1" value="100">
+          </div>
+          <div class="field">
+            <label>Avance f (mm/rev)</label>
+            <input id="avance" type="number" min="0.02" max="1.2" step="0.01" value="0.25">
+          </div>
+          <div class="field">
+            <label>Prof. ap (mm)</label>
+            <input id="ap" type="number" min="0.05" max="10" step="0.05" value="2.0">
+          </div>
+
+          <div class="field span-4">
+            <label>Herramienta</label>
+            <select id="herramienta"></select>
+          </div>
+          <div class="field span-4">
+            <label>Vc (m/min)</label>
+            <input id="vc" type="number" min="10" max="3000" step="5" value="180">
+          </div>
+          <div class="field span-4">
+            <label>Refrigerante</label>
+            <select id="refrigerante"></select>
+          </div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button id="btnCalcular" class="btn">Calcular</button>
+          <button id="btnCopiar" class="btn secondary">Copiar</button>
+          <span class="badge" id="insertoBadge">Inserto: -</span>
+          <span class="badge" id="potenciaBadge">η máquina</span>
+        </div>
+      </2>
+      </div>
+
+      <div class="card">
+        <h2>Resultados en tiempo real</h2>
+        <div class="results">
+          <div class="metric"><div class="k">RPM teórico</div><div class="v" id="outRpm">-</div></div>
+          <div class="metric"><div class="k">RPM ajustado</div><div class="v" id="outRpmM">-</div><div class="s" id="outRpmPct"></div></div>
+          <div class="metric"><div class="k">Avance Vf</div><div class="v" id="outVf">-</div><div class="s">mm/min</div></div>
+          <div class="metric"><div class="k">MRR</div><div class="v" id="outMrr">-</div><div class="s">cm³/min</div></div>
+          <div class="metric"><div class="k">Potencia corte</div><div class="v" id="outPc">-</div><div class="s">kW</div></div>
+          <div class="metric"><div class="k">Potencia motor</div><div class="v" id="outPmot">-</div><div class="s" id="outCarga">-</div></div>
+          <div class="metric"><div class="k">Torque husillo</div><div class="v" id="outTorque">-</div><div class="s">Nm</div></div>
+          <div class="metric"><div class="k">Tiempo corte</div><div class="v" id="outTiempo">-</div></div>
+          <div class="metric"><div class="k">Inserto recomendado</div><div class="v" style="font-size:16px" id="outInserto">-</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Límites y potencia real</h2>
+        <div id="alerts" class="alerts"></div>
+      </div>
+    </section>
+
+    <section id="tab-insertos" hidden>
+      <div class="card">
+        <h2>Biblioteca Insertos ISO – 24 referencias</h2>
+        <div class="row" style="margin-bottom:12px">
+          <input id="filtroInserto" placeholder="Filtrar: CNMG, Aluminio, Acabado..." style="max-width:360px;background:var(--card)">
+          <span class="pill">CNMG 80°</span><span class="pill">VNMG 35°</span><span class="pill">WNMG 80°</span><span class="pill">DNMG 55°</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Código</th><th>Forma°</th><th>Filos</th><th>Material</th><th>Operación</th><th>Grado</th><th>Vc (m/min)</th><th>Radio</th></tr></thead>
+            <tbody id="tbodyInsertos"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-biblioteca" hidden>
+      <div class="card">
+        <h2>Herramientas expandidas y ajuste Vc</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Herramienta</th><th>Factor Vc</th><th>Notas México</th></tr></thead>
+            <tbody>
+              <tr><td>HSS</td><td>0.30× Carburo</td><td>Uso general, baja velocidad</td></tr>
+              <tr><td>HSS-Co (Cobalto)</td><td>0.36× (HSS×1.2)</td><td>Mejor vida en acero</td></tr>
+              <tr><td>Carburo sin recubrir</td><td>0.80×</td><td>Aluminio y no ferrosos</td></tr>
+              <tr><td>Carburo recubierto</td><td>1.00× Base</td><td>Estándar taller</td></tr>
+              <tr><td>Cermet</td><td>1.20×</td><td>Acero 200-350 m/min</td></tr>
+              <tr><td>Cerámica</td><td>2.20×</td><td>Fundición dura, acabado</td></tr>
+              <tr><td>CBN</td><td>1.80×</td><td>Acero templado >45HRC</td></tr>
+              <tr><td>PCD Diamante</td><td>4.0×</td><td>Aluminio 800-2000 m/min</td></tr>
+            </tbody>
+          </table>
+        </div>
+      <div class="card">
+        <h2>Refrigerantes – Factor corrector y aplicación</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Refrigerante</th><th>Factor</th><th>Uso recomendado</th></tr></thead>
+            <tbody id="tbodyRefris"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-maquinas" hidden>
+      <div class="card">
+        <h2>Máquinas CNC – Límites reales</h2>
+        <div id="listaMaquinas" class="machines"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">CNC Torno Pro v5 • Hecho en México • 100% offline • Cálculos con potencia real y eficiencia η</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const maquinas=[
+ {id:'haas-st10',n:'Haas ST-10',rpm:6000,kw:11.2,eta:0.80,vf:24000},
+ {id:'haas-st20',n:'Haas ST-20',rpm:4000,kw:14.9,eta:0.80,vf:24000},
+ {id:'haas-st30',n:'Haas ST-30',rpm:3400,kw:22.4,eta:0.80,vf:24000},
+ {id:'haas-ds30y',n:'Haas DS-30Y',rpm:4000,kw:22.4,eta:0.82,vf:30000},
+ {id:'doosan-2100',n:'Doosan Lynx 2100',rpm:4500,kw:18.5,eta:0.85,vf:30000},
+ {id:'doosan-2100l',n:'Doosan Lynx 2100L',rpm:4500,kw:18.5,eta:0.85,vf:30000},
+ {id:'doosan-puma',n:'Doosan Puma 2600',rpm:3500,kw:26,eta:0.85,vf:30000},
+ {id:'mazak-qt200',n:'Mazak Quick Turn 200',rpm:5000,kw:18.5,eta:0.87,vf:33000},
+ {id:'okuma-l300',n:'Okuma Genos L300',rpm:4500,kw:22,eta:0.86,vf:30000},
+ {id:'dmg-nlx',n:'DMG Mori NLX 2500',rpm:4000,kw:26,eta:0.88,vf:30000},
+ {id:'generica',n:'Genérica Taller',rpm:3000,kw:7.5,eta:0.75,vf:20000},
+];
+const materiales=[
+ {id:'a1018',n:'Acero 1018',kc:1800,g:'acero',vc:{desbaste:210,acabado:260,general:230}},
+ {id:'a1045',n:'Acero 1045',kc:2100,g:'acero',vc:{desbaste:180,acabado:220,general:200}},
+ {id:'a4140',n:'Acero 4140',kc:2500,g:'acero',vc:{desbaste:160,acabado:200,general:175}},
+ {id:'ss304',n:'Inox 304',kc:2600,g:'inoxidable',vc:{desbaste:130,acabado:160,general:145}},
+ {id:'ss316',n:'Inox 316',kc:2800,g:'inoxidable',vc:{desbaste:110,acabado:140,general:125}},
+ {id:'al6061',n:'Aluminio 6061',kc:700,g:'aluminio',vc:{desbaste:400,acabado:550,general:480}},
+ {id:'al7075',n:'Aluminio 7075',kc:800,g:'aluminio',vc:{desbaste:350,acabado:480,general:420}},
+ {id:'fg25',n:'Fundición Gris',kc:1200,g:'fundicion',vc:{desbaste:180,acabado:210,general:195}},
+ {id:'feno',n:'Fundición Nodular',kc:1400,g:'fundicion',vc:{desbaste:140,acabado:170,general:155}},
+ {id:'bronce',n:'Bronce SAE40',kc:900,g:'bronce',vc:{desbaste:240,acabado:300,general:270}},
+ {id:'titanio',n:'Titanio Gr5',kc:3200,g:'titanio',vc:{desbaste:50,acabado:65,general:58}},
+];
+const herramientas=[
+ {id:'hss',n:'HSS',f:0.30},
+ {id:'hssco',n:'HSS-Co (Cobalto)',f:0.36},
+ {id:'carb-sin',n:'Carburo sin recubrir',f:0.80},
+ {id:'carb-rec',n:'Carburo recubierto',f:1.00},
+ {id:'cermet',n:'Cermet',f:1.20},
+ {id:'ceramica',n:'Cerámica',f:2.20},
+ {id:'cbn',n:'CBN',f:1.80},
+ {id:'pcd',n:'PCD Diamante',f:4.00},
+];
+const refrigerantes=[
+ {id:'emul5',n:'Emulsión 5%',f:1.00,u:'General acero'},
+ {id:'emul8',n:'Emulsión 8%',f:1.05,u:'Acero e inox'},
+ {id:'aceite-sol',n:'Aceite soluble',f:1.02,u:'Uso medio'},
+ {id:'aceite-ent',n:'Aceite entero',f:1.10,u:'Roscado y fino'},
+ {id:'aire',n:'Aire comprimido',f:0.90,u:'Fundición'},
+ {id:'mql',n:'MQL',f:0.95,u:'Casi seco'},
+ {id:'kerosene',n:'Kerosene/Alcohol',f:1.15,u:'Aluminio'},
+ {id:'sintetico',n:'Refrigerante sintético',f:1.05,u:'Alta velocidad'},
+ {id:'co2',n:'CO2 criogénico',f:1.20,u:'Titanio / Inox'},
+ {id:'niebla',n:'Niebla',f:0.95,u:'Desbaste ligero'},
+ {id:'seco',n:'Sin refrigerante',f:0.80,u:'Fundición seca'},
+];
+const insertos=[
+{c:'CNMG 120408-AL',f:80,e:2,m:'Aluminio',o:'Desbaste',g:'AL',vc:'300-600',r:0.8},
+{c:'CNMG 120408-PM',f:80,e:2,m:'Acero',o:'Desbaste',g:'PM',vc:'180-280',r:0.8},
+{c:'CNMG 120404-PF',f:80,e:2,m:'Acero',o:'Acabado',g:'PF',vc:'200-300',r:0.4},
+{c:'CNMG 120408-K20',f:80,e:2,m:'Fundición',o:'Desbaste',g:'K20',vc:'120-200',r:0.8},
+{c:'WNMG 080404-AL',f:80,e:2,m:'Aluminio',o:'Desbaste',g:'AL',vc:'400-700',r:0.4},
+{c:'WNMG 080408-PM',f:80,e:2,m:'Acero',o:'Desbaste',g:'PM',vc:'180-260',r:0.8},
+{c:'WNMG 080408-K20',f:80,e:2,m:'Fundición',o:'Desbaste',g:'K20',vc:'130-210',r:0.8},
+{c:'WNMG 080404-PF',f:80,e:2,m:'Acero',o:'Acabado',g:'PF',vc:'220-320',r:0.4},
+{c:'VNMG 160404-AL',f:35,e:2,m:'Aluminio',o:'Acabado',g:'AL',vc:'500-800',r:0.4},
+{c:'VNMG 160404-PF',f:35,e:2,m:'Acero',o:'Acabado',g:'PF',vc:'210-310',r:0.4},
+{c:'VNMG 160408-PM',f:35,e:2,m:'Acero',o:'Desbaste',g:'PM',vc:'170-250',r:0.8},
+{c:'VNMG 160402-SF',f:35,e:2,m:'Inox',o:'Acabado',g:'SF',vc:'140-200',r:0.2},
+{c:'DNMG 110402-AL',f:55,e:2,m:'Aluminio',o:'Acabado',g:'AL',vc:'450-750',r:0.2},
+{c:'DNMG 150408-PF',f:55,e:2,m:'Acero',o:'Acabado',g:'PF',vc:'200-300',r:0.8},
+{c:'DNMG 150404-K20',f:55,e:2,m:'Fundición',o:'Acabado',g:'K20',vc:'140-220',r:0.4},
+{c:'DNMG 150608-PM',f:55,e:2,m:'Acero',o:'Desbaste',g:'PM',vc:'160-240',r:0.8},
+{c:'TNMG 160408',f:60,e:3,m:'Acero',o:'General',g:'QM',vc:'150-250',r:0.8},
+{c:'TNMG 160404',f:60,e:3,m:'Inox',o:'General',g:'SF',vc:'120-180',r:0.4},
+{c:'TNMG 220408',f:60,e:3,m:'Fundición',o:'General',g:'K20',vc:'110-190',r:0.8},
+{c:'CNGA 120408',f:80,e:2,m:'Acero duro',o:'Acabado',g:'Cerámica',vc:'180-300',r:0.8},
+{c:'CNGA 120412',f:80,e:2,m:'Acero >45HRC',o:'Duro',g:'CBN',vc:'120-220',r:1.2},
+{c:'VNGA 160408',f:35,e:2,m:'Fundición dura',o:'Acabado',g:'Cerámica',vc:'300-500',r:0.8},
+{c:'DNMG 150602-PCD',f:55,e:2,m:'Aluminio',o:'Acabado',g:'PCD',vc:'800-2000',r:0.2},
+{c:'WNMG 080412-CM',f:80,e:2,m:'Acero',o:'Medio',g:'Cermet',vc:'200-350',r:1.2},
+];
+
+function init(){
+ // theme
+ const saved=localStorage.getItem('cnc5-theme');
+ if(saved) document.documentElement.setAttribute('data-theme',saved);
+ $('themeBtn').textContent = document.documentElement.getAttribute('data-theme')==='dark'?'☀️':'🌙';
+ $('themeBtn').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme');const nxt=cur==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',nxt);localStorage.setItem('cnc5-theme',nxt);$('themeBtn').textContent=nxt==='dark'?'☀️':'🌙'};
+
+ // populate
+ materiales.forEach(m=>$('material').add(new Option(m.n,m.id)));
+ maquinas.forEach(m=>$('maquina').add(new Option(m.n,m.id)));
+ herramientas.forEach(h=>$('herramienta').add(new Option(h.n,h.id)));
+ refrigerantes.forEach(r=>$('refrigerante').add(new Option(r.n,r.id)));
+
+ $('material').value='a1045';
+ $('maquina').value='haas-st20';
+ $('herramienta').value='carb-rec';
+ $('refrigerante').value='emul8';
+ $('operacion').value='desbaste';
+
+ // tabs
+ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');document.querySelectorAll('main>section').forEach(s=>s.hidden=true);$('tab-'+b.dataset.tab).hidden=false});
+
+ // render tables
+ const tb=$('tbodyInsertos'); insertos.forEach(i=>{const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${i.c}</strong></td><td>${i.f}°</td><td>${i.e}</td><td>${i.m}</td><td>${i.o}</td><td>${i.g}</td><td>${i.vc}</td><td>${i.r}</td>`;tb.appendChild(tr)});
+ $('filtroInserto').oninput=e=>{const q=e.target.value.toLowerCase();tb.querySelectorAll('tr').forEach(tr=>tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none')};
+
+ const trf=$('tbodyRefris'); refrigerantes.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.n}</td><td>${r.f.toFixed(2)}×</td><td>${r.u}</td>`;trf.appendChild(tr)});
+
+ const lm=$('listaMaquinas'); maquinas.forEach(m=>{const d=document.createElement('div');d.className='machine';d.innerHTML=`<h3>${m.n}</h3><div class="specs"><div>RPM max</div><div><strong>${m.rpm.toLocaleString('es-MX')}</strong></div><div>Potencia</div><div><strong>${m.kw} kW</strong></div><div>Eficiencia η</div><div><strong>${m.eta}</strong></div><div>Avance rápido</div><div><strong>${(m.vf/1000)} m/min</strong></div></div>`;lm.appendChild(d)});
+
+ // events
+ ['material','operacion','herramienta','maquina','refrigerante'].forEach(id=>$(id).addEventListener('change',sugerir));
+ $('btnCalcular').onclick=calcular;
+ $('btnCopiar').onclick=copiar;
+ ['diametro','longitud','avance','ap','vc'].forEach(id=>$(id).addEventListener('input',()=>{clearTimeout(window._t);window._t=setTimeout(calcular,250)}));
+
+ sugerir(); calcular();
+}
+
+function sugerir(){
+ const mat=materiales.find(m=>m.id===$('material').value);
+ const op=$('operacion').value;
+ const herr=herramientas.find(h=>h.id===$('herramienta').value);
+ const refr=refrigerantes.find(r=>r.id=== $('refrigerante').value);
+
+ let base=mat.vc[op]||mat.vc.general;
+ let vc;
+ if(herr.id==='pcd' && mat.g==='aluminio') vc=1200;
+ else if(herr.id==='cermet' && mat.g==='acero') vc=275;
+ else if(herr.id==='ceramica' && mat.g==='fundicion') vc=350;
+ else vc=base*herr.f;
+ vc*=refr.f;
+ $('vc').value=Math.round(vc);
+
+ // refrigerante preset
+ const rec = mat.g==='aluminio'?'kerosene': mat.g==='fundicion'?'aire': mat.g==='titanio'?'co2':'emul8';
+ if(!$('refrigerante').dataset.manual) $('refrigerante').value=rec;
+
+ const ins = recomendarInserto(mat,op,herr);
+ $('insertoBadge').textContent='Inserto: '+ins;
+ $('outInserto').textContent=ins;
+ $('potenciaBadge').textContent='η '+maquinas.find(m=>m.id===$('maquina').value).eta;
+}
+$('refrigerante').addEventListener('change',()=>{$('refrigerante').dataset.manual='1'});
+
+function recomendarInserto(mat,op,herr){
+ if(herr.id==='pcd') return 'DNMG 150602-PCD';
+ if(herr.id==='cbn') return 'CNGA 120412';
+ if(herr.id==='ceramica') return mat.g==='fundicion'?'VNGA 160408':'CNGA 120408';
+ if(mat.g==='aluminio') return op==='desbaste'?'CNMG 120408-AL':'VNMG 160404-AL';
+ if(mat.g==='fundicion') return op==='desbaste'?'WNMG 080408-K20':'DNMG 150404-K20';
+ if(mat.g==='acero' || mat.g==='inoxidable' || mat.g==='titanio') return op==='desbaste'?'WNMG 080408-PM':'DNMG 150408-PF';
+ return 'TNMG 160408';
+}
+
+function calcular(){
+ const mat=materiales.find(m=>m.id===$('material').value);
+ const maq=maquinas.find(m=>m.id===$('maquina').value);
+ const op=$('operacion').value;
+ const D=parseFloat($('diametro').value)||0;
+ const L=parseFloat($('longitud').value)||0;
+ const f=parseFloat($('avance').value)||0;
+ const ap=parseFloat($('ap').value)||0;
+ const Vc=parseFloat($('vc').value)||0;
+
+ if(D<=0){return}
+ const rpmTeo=(1000*Vc)/(Math.PI*D);
+ const rpm=Math.min(rpmTeo,maq.rpm);
+ const rpmPct=(rpm/maq.rpm*100);
+ const vf=Math.min(f*rpm,maq.vf);
+ const mrr=(ap*f*vf); // mm3/min
+ const mrrCm=mrr/1000;
+
+ // Potencia real: Pc = ap * f * Vc * kc / 60,000
+ const kc=mat.kc;
+ const Pc=(ap*f*Vc*kc)/60000; // kW corte
+ const Pmot=Pc/maq.eta;
+ const carga=Pmot/maq.kw*100;
+ const torque = rpm>0 ? (Pc*9550)/rpm : 0;
+ const tiempo = vf>0 ? (L/vf) : 0;
+
+ $('outRpm').textContent=Math.round(rpmTeo).toLocaleString('es-MX');
+ $('outRpmM').textContent=Math.round(rpm).toLocaleString('es-MX');
+ $('outRpmPct').textContent=`${rpmPct.toFixed(0)}% de ${maq.rpm} rpm`;
+ $('outVf').textContent=Math.round(vf).toLocaleString('es-MX');
+ $('outMrr').textContent=mrrCm.toFixed(2);
+ $('outPc').textContent=Pc.toFixed(2);
+ $('outPmot').textContent=Pmot.toFixed(2);
+ $('outCarga').textContent=`${carga.toFixed(0)}% de ${maq.kw} kW`;
+ $('outTorque').textContent=torque.toFixed(1);
+ $('outTiempo').textContent=tiempo>0?(tiempo<1?`${Math.round(tiempo*60)} s`:`${tiempo.toFixed(2)} min`):'-';
+
+ // alertas
+ const alerts=$('alerts'); alerts.innerHTML='';
+ const add=(t,cls)=>{const d=document.createElement('div');d.className='alert '+cls;d.innerHTML=t;alerts.appendChild(d)};
+
+ if(rpmTeo>maq.rpm) add(`⚠️ RPM teórico ${Math.round(rpmTeo)} supera límite de máquina (${maq.rpm}). Se ajusta a máximo.`,`warn`);
+ else add(`✓ RPM dentro de límite.`,`ok`);
+
+ if(Pmot>maq.kw) add(`⛔ Potencia requerida ${Pmot.toFixed(2)} kW EXCEDE capacidad ${maq.kw} kW. Reduce ap, f o Vc.`,'bad');
+ else if(carga>85) add(`⚠️ Carga alta ${carga.toFixed(0)}%. Vigila temperatura husillo.`,'warn');
+ else add(`✓ Potencia OK. Carga ${carga.toFixed(0)}% con eficiencia η=${maq.eta}.`,'ok');
+
+ if(vf>=maq.vf*0.98) add(`⚠️ Avance cerca de rápido máximo (${(maq.vf/1000)} m/min).`,'warn');
+ if(op==='acabado' && f>0.2) add(`💡 Para acabado sugiere f ≤0.15 mm/rev y radio ≤0.4`,'warn');
+ if(mat.g==='aluminio' && $('refrigerante').value!=='kerosene') add(`💡 Aluminio: usa Kerosene/Alcohol para mejor acabado.`,'ok');
+ if(mat.g==='fundicion' && !$('refrigerante').value.includes('aire') && !$('refrigerante').value.includes('seco')) add(`💡 Fundición: prefiere aire o seco para evitar choque térmico.`,'ok');
+
+ const insRec=recomendarInserto(mat,op,herramientas.find(h=>h.id===$('herramienta').value));
+ $('outInserto').textContent=insRec;
+}
+
+function copiar(){
+ const txt=`CNC Torno Pro v5
+Material: ${$('material').selectedOptions[0].text}
+Operación: ${$('operacion').value}
+Máquina: ${$('maquina').selectedOptions[0].text}
+D=${$('diametro').value}mm, L=${$('longitud').value}mm
+Vc=${$('vc').value} m/min, f=${$('avance').value} mm/rev, ap=${$('ap').value} mm
+RPM=${$('outRpmM').textContent}, Vf=${$('outVf').textContent} mm/min
+Potencia motor=${$('outPmot').textContent} kW (${$('outCarga').textContent})
+Inserto=${$('outInserto').textContent}`;
+ navigator.clipboard.writeText(txt).then(()=>{const b=$('btnCopiar');const t=b.textContent;b.textContent='¡Copiado!';setTimeout(()=>b.textContent=t,1200)});
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

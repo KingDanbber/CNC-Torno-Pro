@@ -4,7 +4,64 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>CNC Torno Pro v5 - Calculadora Avanzada</title>
+<meta name="description" content="Calculadora profesional offline para torno CNC. Potencia real, límites de máquina, insertos ISO.">
 <meta name="theme-color" content="#2563eb">
+<link id="pwa-manifest" rel="manifest">
+<script>
+/* ── PWA: Manifest + Service Worker (blob, single-file) ── */
+(function(){
+  const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%25" stop-color="%232563eb"/><stop offset="100%25" stop-color="%237c3aed"/></linearGradient></defs><rect width="512" height="512" rx="96" fill="url(%23g)"/><text x="256" y="360" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="256" fill="white">5</text></svg>`;
+  const ICON_URI = 'data:image/svg+xml,' + ICON_SVG;
+  const manifest = {
+    name: 'CNC Torno Pro v5',
+    short_name: 'CNC Torno',
+    description: 'Calculadora avanzada para torno CNC con potencia real y límites de máquina',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#f5f7fb',
+    theme_color: '#2563eb',
+    lang: 'es-MX',
+    icons: [
+      { src: ICON_URI, sizes: '192x192', type: 'image/svg+xml' },
+      { src: ICON_URI, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+    ]
+  };
+  const mBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(mBlob);
+
+  if('serviceWorker' in navigator){
+    const swCode = `
+const CACHE = 'cnc-torno-v5-r1';
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.add(self.registration.scope).catch(() => {}))
+  );
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      }))
+    );
+  }
+});`;
+    const swBlob = new Blob([swCode], {type: 'text/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+  }
+})();
+</script>
 <style>
 *{box-sizing:border-box}html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 :root{--bg:#f5f7fb;--card:#ffffff;--text:#0f172a;--muted:#64748b;--primary:#2563eb;--primary-2:#1d4ed8;--border:#e2e8f0;--success:#16a34a;--warn:#ea580c;--danger:#dc2626;--radius:16px;--shadow:0 4px 20px rgba(2,6,23,.06)}
@@ -17,8 +74,12 @@ body{background:var(--bg);color:var(--text);line-height:1.4}
 .brand h1{font-size:20px;margin:0;font-weight:800;letter-spacing:.2px}
 .brand h1 span{font-size:11px;background:var(--primary);color:white;padding:3px 8px;border-radius:999px;margin-left:6px;vertical-align:middle;font-weight:700}
 .brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.header-actions{display:flex;gap:8px;align-items:center}
 .icon-btn{width:44px;height:44px;border-radius:12px;border:1px solid var(--border);background:var(--card);display:grid;place-items:center;cursor:pointer;font-size:20px;transition:.2s}
 .icon-btn:active{transform:scale(.96)}
+.btn-install{padding:10px 14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),#7c3aed);color:white;font-weight:700;cursor:pointer;font-size:13px;min-height:44px;transition:.2s;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-install:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-install:active{transform:translateY(0)}
 .tabs{display:flex;gap:8px;overflow:auto;padding:2px;margin:0 0 16px;scrollbar-width:none}
 .tab{flex:0 0 auto;padding:10px 16px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;min-height:44px;white-space:nowrap;transition:.2s}
 .tab.active{background:var(--primary);color:white;border-color:var(--primary);box-shadow:0 4px 12px rgba(37,99,235,.25)}
@@ -59,6 +120,9 @@ tr:hover td{background:rgba(37,99,235,.04)}
 .badge{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:var(--bg);border:1px solid var(--border);font-size:12px;color:var(--muted);font-weight:700}
 .footer{color:var(--muted);font-size:12px;text-align:center;margin:24px 0 10px}
 .pill{display:inline-block;padding:4px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--border);font-size:12px;margin-right:6px}
+/* Toast de instalación */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);font-size:14px;font-weight:600;display:flex;gap:10px;align-items:center;transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:9999;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
 @media(max-width:960px){.field{grid-column:span 6}.results{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.field,.field.span-4,.field.span-6{grid-column:span 12}}
 @media(max-width:400px){.app{padding:12px}.card{padding:14px}body{font-size:14px}select,input,.btn{font-size:14px;min-height:44px}.results{grid-template-columns:1fr}.btn{width:100%}.tab{padding:12px 14px}.brand h1{font-size:18px}}
@@ -74,7 +138,10 @@ tr:hover td{background:rgba(37,99,235,.04)}
         <p>Potencia real • Límites máquina • Insertos ISO</p>
       </div>
     </div>
-    <button id="themeBtn" class="icon-btn" title="Tema">🌙</button>
+    <div class="header-actions">
+      <button id="installBtn" class="btn-install" title="Instalar app">📲 Instalar</button>
+      <button id="themeBtn" class="icon-btn" title="Tema">🌙</button>
+    </div>
   </header>
 
   <nav class="tabs">
@@ -142,7 +209,6 @@ tr:hover td{background:rgba(37,99,235,.04)}
           <span class="badge" id="insertoBadge">Inserto: -</span>
           <span class="badge" id="potenciaBadge">η máquina</span>
         </div>
-      </2>
       </div>
 
       <div class="card">
@@ -200,6 +266,7 @@ tr:hover td{background:rgba(37,99,235,.04)}
             </tbody>
           </table>
         </div>
+      </div>
       <div class="card">
         <h2>Refrigerantes – Factor corrector y aplicación</h2>
         <div class="table-wrap">
@@ -221,6 +288,9 @@ tr:hover td{background:rgba(37,99,235,.04)}
 
   <div class="footer">CNC Torno Pro v5 • Hecho en México • 100% offline • Cálculos con potencia real y eficiencia η</div>
 </div>
+
+<!-- Toast PWA -->
+<div id="toast" class="toast">✅ ¡App instalada correctamente!</div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -299,6 +369,27 @@ const insertos=[
 {c:'DNMG 150602-PCD',f:55,e:2,m:'Aluminio',o:'Acabado',g:'PCD',vc:'800-2000',r:0.2},
 {c:'WNMG 080412-CM',f:80,e:2,m:'Acero',o:'Medio',g:'Cermet',vc:'200-350',r:1.2},
 ];
+
+/* ── PWA Install Prompt ── */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $('installBtn').style.display = 'flex';
+});
+$('installBtn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  $('installBtn').style.display = 'none';
+};
+window.addEventListener('appinstalled', () => {
+  $('installBtn').style.display = 'none';
+  const t = $('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+});
 
 function init(){
  // theme
